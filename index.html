@@ -9,9 +9,7 @@
         <script src="angular.min.js"></script>
         <script src="angular-animate.min.js"></script>
         
-        <!--
         <link rel="stylesheet" href="font-awesome-4.6.3/css/font-awesome.min.css" />
-        -->
         
         <style>
             .slide {
@@ -86,6 +84,39 @@
             table tr.hoverable:hover {
                 background-color: white;
                 color: black;
+            }
+            
+            .slide-text-knob {
+                position: absolute;
+                
+                right: 0;
+                top: 50%;
+                
+                padding: 8px 4px;
+                
+                width: 16px;
+                border: 1px solid white;
+                
+                color: white;
+            }
+            
+            .slide-text-knob .slide-text-content {
+                position: absolute;
+                
+                right: 24px;
+                
+                background-color: black;
+                border: 1px solid white;
+                padding: 8px;
+                
+                white-space: nowrap;
+                text-align: left;
+                
+                display: none;
+            }
+            
+            .slide-text-knob:hover .slide-text-content {
+                display: block;
             }
         </style>
 
@@ -275,7 +306,7 @@
             });
             
             /*
-                Im Prinzip das gleiche wie mit den Funktionen
+                Im Prinzip das gleiche wie mit den Funktionen.
             */
             app.component('avoidFilter', {
                 template:   '<div>' +
@@ -450,7 +481,7 @@
                 })
             
             /*
-                Angular prüft Objekte auf den $$hashKey
+                Angular prüft Objekte auf den $$hashKey.
                 
                 Wenn das Array updated wird, z.B. aus einem neuen API-Call,
                 geht dieser $$hashKey verloren (bzw. wird neu gesetzt).
@@ -724,6 +755,18 @@
                 }]
             });
             
+            /*
+                Im ersten Versuch wird zwar das HTML ausgeblendet,
+                da alle <tr> Elemente aber auf der selben Ebene sind,
+                muss trotzdem für jedes ein Listener für ng-if aufgesetzt werden.
+                
+                Wir gewinnen zwar an der Minimierung des HTML, verlieren aber bei den Listeners
+                (da neu zusätzliche Listener für die Gruppen benötigt werden).
+                
+                Im zweiten Versuch können sowohl HTML als auch Listener entfernt werden.
+                Der ganze <tbody> Block kann auf einmal entfernt werden,
+                dadurch müssen die inneren <tr> Elemente gar nicht erst beachtet werden.
+            */
             app.component('ngRepeatExample', {
                 template:   '<div>' +
                                 '<div ng-if="$ctrl.showVersion === 0">' +
@@ -830,6 +873,25 @@
                 }]
             });
             
+            app.component('slideText', {
+                template:   '<div class="slide-text-knob">' +
+                                '<i class="fa fa-chevron-left"></i>' +
+                                '<div class="slide-text-content" ng-transclude></div>' +
+                            '</div>',
+                transclude: true,
+                controller: ['$element', '$timeout', function($element, $timeout) {
+                    var $ctrl = this;
+                    
+                    $ctrl.$onInit = function() {
+                        $timeout(function() {
+                            var content = $element.find('.slide-text-content');
+                            
+                            content.css({ top: -content.height() / 2 + 8 });
+                        }, 0, false);
+                    };
+                }]
+            })
+            
             // TODO: Debounce ng-model ?
             
             // TODO: $apply vs $digest ?
@@ -863,6 +925,35 @@
                     <h1>One-Time-Binding</h1>
                     
                     <one-way-binding></one-way-binding>
+                    
+                    <slide-text>
+                        Watches werden auf alles Mögliche gesetzt:
+                        
+                        <ul>
+                            <li>$scope.$watch</li>
+                            <li>{&#8203;{ }&#8203;}</li>
+                            <li>Direktiven-Bindings (ng-show)</li>
+                            <li>Scope Variabeln</li>
+                            <li>Filter ({&#8203;{ value | filter }&#8203;})</li>
+                        </ul>
+
+                        Ein Digest-Cycle läuft auf
+                        
+                        <ul>
+                            <li>ng-click (und ähnliche)</li>
+                            <li>$http</li>
+                            <li>$q</li>
+                            <li>$timeout / $interval</li>
+                        </ul>
+
+                        Der Digest-Cycle läuft, bis sich die App "stabilisiert" hat. <br />
+                        D.h. Angular geht durch _ALLE_ Watches und prüft, ob sie sich updated haben, <br />
+                        falls einer dieser Watches von einem anderen abhängt, muss der Cycle nochmal <br />
+                        durchlaufen werden. <br />
+                        -&gt; Je weniger Watches, desto schneller (exponential) <br /> <br />
+
+                        Mit one-time-binding wird der Watch verworfen, sobald ein Wert existiert.
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="2">
@@ -870,6 +961,16 @@
                     <h1>Function vs. Expression</h1>
                     
                     <function-vs-expression></function-vs-expression>
+                    
+                    <slide-text>
+                        Die Funktion muss jedesmal neu ausgewertet werden, da dirty-checking nicht möglich ist. <br />
+                        Expressions können von Angular direkt überwacht werden. <br /> <br />
+
+                        "Leider" ist Angular hier zu schlau sich austricksen zu lassen. <br />
+                        $ctrl.showTextFnc() wird zwar jedesmal neu ausgewertet, das Resultat wird aber nicht <br />
+                        ins DOM übertragen. Der Block bleibt angezeigt. <br />
+                        Vermutlich hat Angular hier eine Art "Virtual-DOM" wo der Visibility-State gespeichert ist?
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="3">
@@ -877,6 +978,25 @@
                     <h1>Avoid filters</h1>
                     
                     <avoid-filter></avoid-filter>
+                    
+                    <slide-text>
+                        Im Prinzip das gleiche wie mit den Funktionen.
+                        
+                        <hr /> <!-- Addendum -->
+                        
+                        "Stateful" Filter reagieren auch auf den Wechsel im State der App. <br /> <br />
+                
+                        Ein normaler ("stateless") Filter kann sich darauf beschränken, <br />
+                        nur auf eine Änderung im Wert zu reagieren. <br /> <br />
+
+                        Wenn sich, zum Beispiel bei einem Übersetzungs-Filter, aber der Stand, <br />
+                        wie die gesetzte Sprache, ändert, hat sich der Übersetzungs-Key ja nicht <br />
+                        angepasst, der Filter würde die Übersetzung nicht erneuern. <br />
+                        Dazu muss der Filter als "stateful" definiert werden. <br /> <br />
+
+                        Das bedeutet aber, dass Angular keine Chance hat, den Filter irgendwie <br />
+                        zu cachen. Der Wert muss jedesmal neu ausgewertet werden.
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="4">
@@ -884,6 +1004,20 @@
                     <h1>Track by ..</h1>
                     
                     <track-by></track-by>
+                    
+                    <slide-text>
+                        Angular prüft Objekte auf den $$hashKey. <br /> <br />
+                
+                        Wenn das Array updated wird, z.B. aus einem neuen API-Call, <br />
+                        geht dieser $$hashKey verloren (bzw. wird neu gesetzt). <br />
+                        Angular wird sämtliche DOM Elemente austauschen, das ist teuer. <br /> <br />
+
+                        Mit "track by" kann Angular klar gemacht werden, auf welchen <br />
+                        Wert der Vergleich gelegt werden soll. Wenn man nun das Array <br />
+                        updated, kann das DOM grösstenteils intakt gehalten werden. <br /> <br />
+
+                        DOM Operationen sind generell teuer!
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="5">
@@ -891,6 +1025,16 @@
                     <h1>ng-if vs. ng-show</h1>
                     
                     <if-vs-show></if-vs-show>
+                    
+                    <slide-text>
+                        ng-show blendet einfach aus (mittels "display: none"), <br />
+                        der komplette DOM Tree ist aber noch vorhanden und muss dementsprechend "berechnet" werden. <br /> <br />
+
+                        ng-if entfernt bzw. baut den DOM Tree gar nicht erst auf. <br /> <br />
+
+                        Solange nicht ständig auf einem einzelnen Element getoggelt wird, <br />
+                        ist ng-if die bessere Wahl.
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="6">
@@ -898,6 +1042,19 @@
                     <h1>ng-repeat</h1>
                     
                     <ng-repeat-example></ng-repeat-example>
+                    
+                    <slide-text>
+                        Im ersten Versuch wird zwar das HTML ausgeblendet, <br />
+                        da alle &lt;tr&gt; Elemente aber auf der selben Ebene sind, <br />
+                        muss trotzdem für jedes ein Listener für ng-if aufgesetzt werden. <br /> <br />
+
+                        Wir gewinnen zwar an der Minimierung des HTML, verlieren aber bei den Listeners <br />
+                        (da neu zusätzliche Listener für die Gruppen benötigt werden). <br /> <br />
+
+                        Im zweiten Versuch können sowohl HTML als auch Listener entfernt werden. <br />
+                        Der ganze &lt;tbody&gt; Block kann auf einmal entfernt werden, <br />
+                        dadurch müssen die inneren &lt;tr&gt; Elemente gar nicht erst beachtet werden. <br />
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="7">
@@ -905,6 +1062,15 @@
                     <h1>Native JS</h1>
                     
                     <angular-vs-native></angular-vs-native>
+                    
+                    <slide-text>
+                        Die Angular Funktionen sind gut 30% langsamer. <br /> <br />
+                
+                        Dies, weil sie allgemeiner geschrieben wurden (werden mussten). <br />
+                        Sie müssen for Arrays und Objekte gleichermassen funktionieren. <br /> <br />
+
+                        Die nativen JS Funktionen sind spezifischer und daher schneller.
+                    </slide-text>
                 </div>
             </div>
             <div class="slide centered" ng-switch-when="8"> <!-- not sure about this one -->
@@ -912,6 +1078,21 @@
                     <h1>$watch / $watchCollection</h1>
                     
                     <watch-vs-watch-collection></watch-vs-watch-collection>
+                    
+                    <slide-text>
+                        Die Änderung eines "tiefen" Werts (Wert eines Objekts der Liste) <br />
+                        triggert nur $watch(collection, true): <br />
+                        Es ändert sich etwas tief in der Struktur, <br />
+                        $watch(collection) prüft nur die "Top-Level" Referenz der Liste <br />
+                        und $watchCollection(collection) prüfen nur die "Top-Level" Referenzen der Einträge <br /> <br />
+
+                        Die Änderung eines "seichten" Werts (Objekt der Liste) <br />
+                        triggert $watch(collection, true) und $watchCollection(collection): <br />
+                        $watch(collection) triggert nicht, weil es nur die "Top-Level" Referenz der Liste prüft <br /> <br />
+
+                        Wenn man die Liste austauscht, triggern alle <br />
+                        $watch(collection) schlägt diesmal an, weil die "Top-Level" Referenz der Liste änderts
+                    </slide-text>
                 </div>
             </div>
         </div>
