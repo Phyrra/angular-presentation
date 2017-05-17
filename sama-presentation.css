@@ -1,0 +1,92 @@
+.arrow-up {
+    width: 0; 
+    height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+
+    border-bottom: 20px solid #cccccc;
+}
+
+.arrow-down {
+    width: 0; 
+    height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+
+    border-top: 20px solid #cccccc;
+}
+
+.arrow-right {
+    width: 0; 
+    height: 0; 
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+
+    border-left: 20px solid #cccccc;
+}
+
+.arrow-left {
+    width: 0; 
+    height: 0; 
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent; 
+
+    border-right: 20px solid #cccccc; 
+}
+
+sama-navigation .nav-strip {
+    z-index: 1000;
+    position: fixed;
+    
+    background-color: rgba(239, 239, 239, 0.66);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    opacity: 0;
+    transition: opacity 0.5s linear;
+}
+
+sama-navigation .nav-strip:hover {
+    opacity: 1;
+}
+
+sama-navigation .nav-strip.top {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 32px;
+}
+
+sama-navigation .nav-strip.right {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 32px;
+}
+
+sama-navigation .nav-strip.bottom {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 32px;
+}
+
+sama-navigation .nav-strip.left {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 32px;
+}
+
+sama-slide {
+    position: fixed;
+    
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    
+    overflow: hidden;
+}

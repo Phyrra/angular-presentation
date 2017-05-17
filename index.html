@@ -1,40 +1,41 @@
 <!doctype html>
-<html ng-app="plunker">
+<html>
 	<head>
 		<meta charset="utf-8">
 		<title>AngularJS Performance Pitfals</title>
         <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
         
-        <script src="jquery-1.12.4.min.js"></script>
+        <script src="jquery-3.2.1.min.js"></script>
         <script src="angular.min.js"></script>
-        <script src="angular-animate.min.js"></script>
-        
-        <link rel="stylesheet" href="font-awesome-4.6.3/css/font-awesome.min.css" />
+
+        <link rel="stylesheet" href="sama-presentation.css" />
+		<script src="sama-presentation.js"></script>
         
         <style>
-            .slide {
-                position: absolute;
-                
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                
+            html,
+			body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+			}
+
+            sama-slide {
                 background-color: black;
                 color: white;
             }
             
-            .slide.centered {
+            sama-slide.centered {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
             
-            .slide.centered > div {
+            sama-slide.centered > div {
                 text-align: center;
             }
             
-            .slide h1 {
+            sama-slide h1 {
                 text-align: center;
                 margin-bottom: 60px;
             }
@@ -89,12 +90,12 @@
             .slide-text-knob {
                 position: absolute;
                 
-                right: 0;
+                right: 36px; /* left of the navigation bar + padding */
                 top: 50%;
                 
                 padding: 8px 4px;
                 
-                width: 16px;
+                width: 20px;
                 border: 1px solid white;
                 
                 color: white;
@@ -103,7 +104,7 @@
             .slide-text-knob .slide-text-content {
                 position: absolute;
                 
-                right: 24px;
+                right: 28px;
                 
                 background-color: black;
                 border: 1px solid white;
@@ -121,59 +122,16 @@
         </style>
 
 		<script>
-            var app = angular.module('plunker', ['ngAnimate']);
+            var module = angular.module('angular-presentation', ['sama-presentation']);
 
-			app.run(function() { });
-            
-            app.controller('PresentationController', ['$document', '$element', '$timeout',
-                function    PresentationController   ( $document,   $element,   $timeout) {
-                    var $ctrl = this;
-                    
-                    $ctrl.keyPressed = false;
-                    $ctrl.currentSlide = 0;
-                    $ctrl.maxSlides = 9;
-                    
-                    $ctrl.$onInit = function() {
-                        $document.on('keydown', function(event) {
-                            if (!$ctrl.keyPressed) {
-                                $timeout(function() {
-                                    switch (event.key) {
-                                        case 'ArrowRight':
-                                            $ctrl.currentSlide = Math.min($ctrl.currentSlide + 1, $ctrl.maxSlides - 1);
-                                            break;
-                                        case 'ArrowLeft':
-                                            $ctrl.currentSlide = Math.max($ctrl.currentSlide - 1, 0);
-                                            break;
-                                        case 'ArrowUp':
-                                            $ctrl.currentSlide = 0;
-                                            break;
-                                        case 'ArrowDown':
-                                            $ctrl.currentSlide = $ctrl.maxSlides - 1;
-                                            break;
-                                    }  
-                                });
-                            }
-                            
-                            $ctrl.keyPressed = true;
-                        });
-                        
-                        $document.on('keyup', function() {
-                            $ctrl.keyPressed = false;
-                        });
-                    };
-                    
-                    $ctrl.$onInit();
-                }
-            ]);
-            
-            app.component('codeBlock', {
+            module.component('codeBlock', {
                 template: '<code><pre>{{ ::$ctrl.code }}</pre></code>',
                 bindings: {
                     code: '<'
                 }
             });
             
-            app.component('separatorBlock', {
+            module.component('separatorBlock', {
                 template: '<div ng-style="::{ height: $ctrl.height }"></div>',
                 bindings: {
                     height: '<'
@@ -202,27 +160,28 @@
                 
                 Mit one-time-binding wird der Watch verworfen, sobald ein Wert existiert.
             */
-            app.component('oneWayBinding', {
-                template:   '<div>' +
-                                '<code-block code="::$ctrl.code1"></code-block>' +
-                                '<code-block code="::$ctrl.code2"></code-block>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<div class="inline-block">' +
-                                    '<div class="table">' +
-                                        '<div>' +
-                                            '<span>{{ $ctrl.number }}</span>' +
-                                            '<span><code>$ctrl.number</code></span>' +
-                                            '<span class="align-right">&lt;-- Watched</span>' +
-                                        '</div>' +
-                                        '<div>' +
-                                            '<span>{{ ::$ctrl.number }}</span>' +
-                                            '<span><code>::$ctrl.number</code></span>' +
-                                            '<span class="align-right">&lt;-- Not watched</span>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<button ng-click="$ctrl.incr()">Click</button>' +
+            module.component('oneWayBinding', {
+                template:
+                    '<div>' +
+                        '<code-block code="::$ctrl.code1"></code-block>' +
+                        '<code-block code="::$ctrl.code2"></code-block>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<div class="inline-block">' +
+                            '<div class="table">' +
+                                '<div>' +
+                                    '<span>{{ $ctrl.number }}</span>' +
+                                    '<span><code>$ctrl.number</code></span>' +
+                                    '<span class="align-right">&lt;-- Watched</span>' +
                                 '</div>' +
-                            '</div>',
+                                '<div>' +
+                                    '<span>{{ ::$ctrl.number }}</span>' +
+                                    '<span><code>::$ctrl.number</code></span>' +
+                                    '<span class="align-right">&lt;-- Not watched</span>' +
+                                '</div>' +
+                            '</div>' +
+                            '<button ng-click="$ctrl.incr()">Click</button>' +
+                        '</div>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -246,21 +205,22 @@
                 ins DOM übertragen. Der Block bleibt angezeigt.
                 Vermutlich hat Angular hier eine Art "Virtual-DOM" wo der Visibility-State gespeichert ist?
             */
-            app.component('functionVsExpression', {
-                template:   '<div>' +
-                                '<code-block code="::$ctrl.code1"></code-block>' +
-                                '<div>{{ $ctrl.getText() }} --&gt; <span id="fve-noop-calls-1"></span></div>' +
-                                //'<code-block code="::$ctrl.code2"></code-block>' +
-                                //'<div>{{ $ctrl.text }}</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<code-block code="::$ctrl.code3"></code-block>' +
-                                '<div id="fve-show-fnc" ng-show="$ctrl.showTextFnc()">Some Content --&gt; <span id="fve-noop-calls-2"></span></div>' +
-                                '<code-block code="::$ctrl.code4"></code-block>' +
-                                '<div id="fve-show-expr" ng-show="$ctrl.showTextExpr">Some Content</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<button ng-click="$ctrl.noop()">NoOp</button>' +
-                                '<button id="fve-show-button">Show</button>' +
-                            '</div>',
+            module.component('functionVsExpression', {
+                template:
+                    '<div>' +
+                        '<code-block code="::$ctrl.code1"></code-block>' +
+                        '<div>{{ $ctrl.getText() }} --&gt; <span id="fve-noop-calls-1"></span></div>' +
+                        //'<code-block code="::$ctrl.code2"></code-block>' +
+                        //'<div>{{ $ctrl.text }}</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<code-block code="::$ctrl.code3"></code-block>' +
+                        '<div id="fve-show-fnc" ng-show="$ctrl.showTextFnc()">Some Content --&gt; <span id="fve-noop-calls-2"></span></div>' +
+                        '<code-block code="::$ctrl.code4"></code-block>' +
+                        '<div id="fve-show-expr" ng-show="$ctrl.showTextExpr">Some Content</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<button ng-click="$ctrl.noop()">NoOp</button>' +
+                        '<button id="fve-show-button">Show</button>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -308,34 +268,35 @@
             /*
                 Im Prinzip das gleiche wie mit den Funktionen.
             */
-            app.component('avoidFilter', {
-                template:   '<div>' +
-                                '<div>' +
-                                    '<code-block code="::$ctrl.code1"></code-block>' +
-                                    '<div ng-repeat="item in $ctrl.items | filter: $ctrl.filter1()">' +
-                                        '{{ ::item.text }}' +
-                                    '</div>' +
-                                    '<div id="af-counter1"></div>' +
-                                '</div>' +
-                                '<separator-block height="20"></separator-block>' +
-                                '<div>' +
-                                    '<code-block code="::$ctrl.code2"></code-block>' +
-                                    '<div ng-repeat="item in ::$ctrl.items | filter: $ctrl.filter2()">' +
-                                        '{{ ::item.text }}' +
-                                    '</div>' +
-                                    '<div id="af-counter2"></div>' +
-                                '</div>' +
-                                '<separator-block height="20"></separator-block>' +
-                                '<div>' +
-                                    '<code-block code="::$ctrl.code3"></code-block>' +
-                                    '<div ng-repeat="item in $ctrl.filteredItems">' +
-                                        '{{ ::item.text }}' +
-                                    '</div>' +
-                                    '<div id="af-counter3"></div>' +
-                                '</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<button ng-click="$ctrl.noop()">NoOp</button>' +
-                            '</div>',
+            module.component('avoidFilter', {
+                template:
+                    '<div>' +
+                        '<div>' +
+                            '<code-block code="::$ctrl.code1"></code-block>' +
+                            '<div ng-repeat="item in $ctrl.items | filter: $ctrl.filter1()">' +
+                                '{{ ::item.text }}' +
+                            '</div>' +
+                            '<div id="af-counter1"></div>' +
+                        '</div>' +
+                        '<separator-block height="20"></separator-block>' +
+                        '<div>' +
+                            '<code-block code="::$ctrl.code2"></code-block>' +
+                            '<div ng-repeat="item in ::$ctrl.items | filter: $ctrl.filter2()">' +
+                                '{{ ::item.text }}' +
+                            '</div>' +
+                            '<div id="af-counter2"></div>' +
+                        '</div>' +
+                        '<separator-block height="20"></separator-block>' +
+                        '<div>' +
+                            '<code-block code="::$ctrl.code3"></code-block>' +
+                            '<div ng-repeat="item in $ctrl.filteredItems">' +
+                                '{{ ::item.text }}' +
+                            '</div>' +
+                            '<div id="af-counter3"></div>' +
+                        '</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<button ng-click="$ctrl.noop()">NoOp</button>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -407,7 +368,7 @@
                 Das bedeutet aber, dass Angular keine Chance hat, den Filter irgendwie
                 zu cachen. Der Wert muss jedesmal neu ausgewertet werden.
             */
-            app
+            module
                 .service('Locale', [function() {
                     var MAP = {
                         en: {
@@ -452,22 +413,23 @@
                 }])
             
                 .component('statefulFilter', {
-                    template:   '<div>' +
-                                    '<div>{{ \'LANG\' | translateStateless }}</div>' +
-                                    '<div>{{ \'LANG\' | translateStateful }}</div>' +
-                                    '<separator-block height="20"></separator-block>' +
-                                    '<div>' +
-                                        '<label>' +
-                                            '<input type="radio" value="de" ng-model="$ctrl.language" ng-change="$ctrl.onChangeLanguage()" />' +
-                                            'Deutsch' +
-                                        '</label>' +
-                                        '<br />' +
-                                        '<label>' +
-                                            '<input type="radio" value="en" ng-model="$ctrl.language" ng-change="$ctrl.onChangeLanguage()" />' +
-                                            'English' +
-                                        '</label>' +
-                                    '</div>' +
-                                '</div>',
+                    template:
+                        '<div>' +
+                            '<div>{{ \'LANG\' | translateStateless }}</div>' +
+                            '<div>{{ \'LANG\' | translateStateful }}</div>' +
+                            '<separator-block height="20"></separator-block>' +
+                            '<div>' +
+                                '<label>' +
+                                    '<input type="radio" value="de" ng-model="$ctrl.language" ng-change="$ctrl.onChangeLanguage()" />' +
+                                    'Deutsch' +
+                                '</label>' +
+                                '<br />' +
+                                '<label>' +
+                                    '<input type="radio" value="en" ng-model="$ctrl.language" ng-change="$ctrl.onChangeLanguage()" />' +
+                                    'English' +
+                                '</label>' +
+                            '</div>' +
+                        '</div>',
                     controller: ['Locale', function(Locale) {
                         var $ctrl = this;
                         
@@ -493,23 +455,24 @@
                 
                 DOM Operationen sind generell teuer!
             */
-            app.component('trackBy', {
-                template:   '<div>' +
-                                '<code-block code="::$ctrl.code1"></code-block>' +
-                                '<separator-block height="8"></separator-block>' +
-                                '<div class="trackby-list">' +
-                                    '<div ng-repeat="item in $ctrl.list">{{ item.text }}</div>' +
-                                '</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<code-block code="::$ctrl.code2"></code-block>' +
-                                '<separator-block height="8"></separator-block>' +
-                                '<div class="trackby-list">' +
-                                    '<div ng-repeat="item in $ctrl.list track by item.id">{{ item.text }}</div>' +
-                                '</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<button ng-click="$ctrl.color()">Color</button>' +
-                                '<button ng-click="$ctrl.update()">Update</button>' +
-                            '</div>',
+            module.component('trackBy', {
+                template:
+                    '<div>' +
+                        '<code-block code="::$ctrl.code1"></code-block>' +
+                        '<separator-block height="8"></separator-block>' +
+                        '<div class="trackby-list">' +
+                            '<div ng-repeat="item in $ctrl.list">{{ item.text }}</div>' +
+                        '</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<code-block code="::$ctrl.code2"></code-block>' +
+                        '<separator-block height="8"></separator-block>' +
+                        '<div class="trackby-list">' +
+                            '<div ng-repeat="item in $ctrl.list track by item.id">{{ item.text }}</div>' +
+                        '</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<button ng-click="$ctrl.color()">Color</button>' +
+                        '<button ng-click="$ctrl.update()">Update</button>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -555,24 +518,25 @@
                 Solange nicht ständig auf einem einzelnen Element getoggelt wird,
                 ist ng-if die bessere Wahl.
             */
-            app.component('ifVsShow', {
-                template:   '<div>' +
-                                '<code-block code="::$ctrl.code1"></code-block>' +
-                                '<div style="background-color: white; color: black; height: 20px;">' +
-                                    '<div ng-show="$ctrl.show">' +
-                                        '<div><div><div><div>Content</div></div></div></div>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<separator-block height="20"></separator-block>' +
-                                '<code-block code="::$ctrl.code2"></code-block>' +
-                                '<div style="background-color: white; color: black; height: 20px;">' +
-                                    '<div ng-if="$ctrl.show">' +
-                                        '<div><div><div><div>Content</div></div></div></div>' +
-                                    '</div>' +
-                                '</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<button ng-click="$ctrl.toggle()">Toggle</button>' +
-                            '</div>',
+            module.component('ifVsShow', {
+                template:
+                    '<div>' +
+                        '<code-block code="::$ctrl.code1"></code-block>' +
+                        '<div style="background-color: white; color: black; height: 20px;">' +
+                            '<div ng-show="$ctrl.show">' +
+                                '<div><div><div><div>Content</div></div></div></div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<separator-block height="20"></separator-block>' +
+                        '<code-block code="::$ctrl.code2"></code-block>' +
+                        '<div style="background-color: white; color: black; height: 20px;">' +
+                            '<div ng-if="$ctrl.show">' +
+                                '<div><div><div><div>Content</div></div></div></div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<button ng-click="$ctrl.toggle()">Toggle</button>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -595,17 +559,18 @@
                 
                 Die nativen JS Funktionen sind spezifischer und daher schneller.
             */
-            app.component('angularVsNative', {
-                template:   '<div>' +
-                                '<code-block code="::$ctrl.code1"></code-block>' +
-                                '<div>{{ $ctrl.time1 }}</div>' +
-                                '<code-block code="::$ctrl.code2"></code-block>' +
-                                '<div>{{ $ctrl.time2 }}</div>' +
-                                '<separator-block height="20"></separator-block>' +
-                                '<div ng-if="$ctrl.done">{{ $ctrl.time2 / $ctrl.time1 * 100 | number:1 }}%</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<button ng-click="$ctrl.start()">Start</button>' +
-                            '</div>',
+            module.component('angularVsNative', {
+                template:
+                    '<div>' +
+                        '<code-block code="::$ctrl.code1"></code-block>' +
+                        '<div>{{ $ctrl.time1 }}</div>' +
+                        '<code-block code="::$ctrl.code2"></code-block>' +
+                        '<div>{{ $ctrl.time2 }}</div>' +
+                        '<separator-block height="20"></separator-block>' +
+                        '<div ng-if="$ctrl.done">{{ $ctrl.time2 / $ctrl.time1 * 100 | number:1 }}%</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<button ng-click="$ctrl.start()">Start</button>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -677,26 +642,27 @@
                 Wenn man die Liste austauscht, triggern alle
                 $watch(collection) schlägt diesmal an, weil die "Top-Level" Referenz der Liste änderts
             */
-            app.component('watchVsWatchCollection', {
-                template:   '<div>' +
-                                '<code-block code="::$ctrl.code1"></code-block>' +
-                                '<div ng-repeat="log in $ctrl.log1">Triggered</div>' +
-                                '<separator-block height="20"></separator-block>' +
-                                '<code-block code="::$ctrl.code2"></code-block>' +
-                                '<div ng-repeat="log in $ctrl.log2">Triggered</div>' +
-                                '<separator-block height="20"></separator-block>' +
-                                '<code-block code="::$ctrl.code3"></code-block>' +
-                                '<div ng-repeat="log in $ctrl.log3">Triggered</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<div>' +
-                                    '<button ng-click="$ctrl.changeShallowValue()">Shallow Value</button>' +
-                                    '<button ng-click="$ctrl.changeDeepValue()">Deep Value</button>' +
-                                    '<button ng-click="$ctrl.rebuild()">Rebuild</button>' +
-                                '</div>' +
-                                '<div>' +
-                                    '<button ng-click="$ctrl.clearLogs()">Clear</button>' +
-                                '</div>' +
-                            '</div>',
+            module.component('watchVsWatchCollection', {
+                template:
+                    '<div>' +
+                        '<code-block code="::$ctrl.code1"></code-block>' +
+                        '<div ng-repeat="log in $ctrl.log1">Triggered</div>' +
+                        '<separator-block height="20"></separator-block>' +
+                        '<code-block code="::$ctrl.code2"></code-block>' +
+                        '<div ng-repeat="log in $ctrl.log2">Triggered</div>' +
+                        '<separator-block height="20"></separator-block>' +
+                        '<code-block code="::$ctrl.code3"></code-block>' +
+                        '<div ng-repeat="log in $ctrl.log3">Triggered</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<div>' +
+                            '<button ng-click="$ctrl.changeShallowValue()">Shallow Value</button>' +
+                            '<button ng-click="$ctrl.changeDeepValue()">Deep Value</button>' +
+                            '<button ng-click="$ctrl.rebuild()">Rebuild</button>' +
+                        '</div>' +
+                        '<div>' +
+                            '<button ng-click="$ctrl.clearLogs()">Clear</button>' +
+                        '</div>' +
+                    '</div>',
                 controller: ['$scope', function($scope) {
                     var $ctrl = this;
                     
@@ -767,41 +733,42 @@
                 Der ganze <tbody> Block kann auf einmal entfernt werden,
                 dadurch müssen die inneren <tr> Elemente gar nicht erst beachtet werden.
             */
-            app.component('ngRepeatExample', {
-                template:   '<div>' +
-                                '<div ng-if="$ctrl.showVersion === 0">' +
-                                    '<code-block code="::$ctrl.code1" style="text-align: left;"></code-block>' +
-                                    '<table>' +
-                                        '<tr class="hoverable" ng-repeat-start="group in $ctrl.groups" ng-click="$ctrl.onClickGroup(group)">' +
-                                            '<td>{{ ::group.title }}</td>' +
-                                        '</tr>' +
-                                        '<tr ' +
-                                            'ng-repeat="item in group.items" ' +
-                                            'ng-if="group.expanded"' +
-                                        '>' +
-                                            '<td>{{ ::item.text }}</td>' +
-                                        '</tr>' +
-                                        '<tr ng-repeat-end ng-if="false"><td></td></tr>' +
-                                    '</table>' +
-                                '</div>' +
-                                '<div ng-if="$ctrl.showVersion === 1">' +
-                                    '<code-block code="::$ctrl.code2" style="text-align: left;"></code-block>' +
-                                    '<table>' +
-                                        '<tbody ng-repeat-start="group in $ctrl.groups">' +
-                                            '<tr class="hoverable" ng-click="$ctrl.onClickGroup(group)">' +
-                                                '<td>{{ ::group.title }}</td>' +
-                                            '</tr>' +
-                                        '</tbody>' +
-                                        '<tbody ng-repeat-end ng-if="group.expanded">' +
-                                            '<tr ng-repeat="item in group.items">' +
-                                                '<td>{{ ::item.text }}</td>' +
-                                            '</tr>' +
-                                        '</tbody>' +
-                                    '</table>' +
-                                '</div>' +
-                                '<separator-block height="40"></separator-block>' +
-                                '<button ng-click="$ctrl.toggleShowVersion()">Toggle</button>' +
-                            '</div>',
+            module.component('ngRepeatExample', {
+                template:
+                    '<div>' +
+                        '<div ng-if="$ctrl.showVersion === 0">' +
+                            '<code-block code="::$ctrl.code1" style="text-align: left;"></code-block>' +
+                            '<table>' +
+                                '<tr class="hoverable" ng-repeat-start="group in $ctrl.groups" ng-click="$ctrl.onClickGroup(group)">' +
+                                    '<td>{{ ::group.title }}</td>' +
+                                '</tr>' +
+                                '<tr ' +
+                                    'ng-repeat="item in group.items" ' +
+                                    'ng-if="group.expanded"' +
+                                '>' +
+                                    '<td>{{ ::item.text }}</td>' +
+                                '</tr>' +
+                                '<tr ng-repeat-end ng-if="false"><td></td></tr>' +
+                            '</table>' +
+                        '</div>' +
+                        '<div ng-if="$ctrl.showVersion === 1">' +
+                            '<code-block code="::$ctrl.code2" style="text-align: left;"></code-block>' +
+                            '<table>' +
+                                '<tbody ng-repeat-start="group in $ctrl.groups">' +
+                                    '<tr class="hoverable" ng-click="$ctrl.onClickGroup(group)">' +
+                                        '<td>{{ ::group.title }}</td>' +
+                                    '</tr>' +
+                                '</tbody>' +
+                                '<tbody ng-repeat-end ng-if="group.expanded">' +
+                                    '<tr ng-repeat="item in group.items">' +
+                                        '<td>{{ ::item.text }}</td>' +
+                                    '</tr>' +
+                                '</tbody>' +
+                            '</table>' +
+                        '</div>' +
+                        '<separator-block height="40"></separator-block>' +
+                        '<button ng-click="$ctrl.toggleShowVersion()">Toggle</button>' +
+                    '</div>',
                 controller: [function() {
                     var $ctrl = this;
                     
@@ -873,28 +840,28 @@
                 }]
             });
             
-            app.component('slideText', {
-                template:   '<div class="slide-text-knob">' +
-                                '<i class="fa fa-chevron-left"></i>' +
-                                '<div class="slide-text-content" ng-transclude></div>' +
-                            '</div>',
+            module.component('slideText', {
+                template:
+                    '<div class="slide-text-knob">' +
+                        '<div class="arrow-left"></div>' +
+                        '<div class="slide-text-content" ng-style="{ \'top\': $ctrl.calculateTopOffset() }" ng-transclude></div>' +
+                    '</div>',
                 transclude: true,
                 controller: ['$element', '$timeout', function($element, $timeout) {
                     var $ctrl = this;
-                    
-                    $ctrl.$onInit = function() {
-                        $timeout(function() {
-                            var content = $element.find('.slide-text-content');
-                            
-                            content.css({ top: -content.height() / 2 + 8 });
-                        }, 0, false);
+
+                    $ctrl.calculateTopOffset = function() {
+                        var knob = $element.find('.slide-text-knob');
+                        var content = $element.find('.slide-text-content');
+
+                        return -content.height() / 2 + knob.height() / 2;
                     };
                 }]
-            })
-            
-            // TODO: Debounce ng-model ?
-            
-            // TODO: $apply vs $digest ?
+            });
+
+            $(document).ready(function() {
+				angular.bootstrap($('body'), ['angular-presentation']);
+			});
         </script>
         
         <!--
@@ -912,15 +879,16 @@
         -->
 	</head>
 
-	<body ng-controller="PresentationController as $ctrl">
-        <div ng-switch="$ctrl.currentSlide">
-            <div class="slide centered" ng-switch-when="0">
+	<body>
+        <sama-presentation start-slide="1" animation-time="500">
+            <sama-slide class="centered" slide-id="1" slide-right="2" slide-down="9">
                 <div>
                     <h1>AngularJS Performance Pitfalls</h1>
                     <h3>finnova AG Bankware</h3>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="1">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="2" slide-left="1" slide-right="3" slide-up="1" slide-down="9">
                 <div>
                     <h1>One-Time-Binding</h1>
                     
@@ -955,8 +923,9 @@
                         Mit one-time-binding wird der Watch verworfen, sobald ein Wert existiert.
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="2">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="3" slide-left="2" slide-right="4" slide-up="1" slide-down="9">
                 <div>
                     <h1>Function vs. Expression</h1>
                     
@@ -972,8 +941,9 @@
                         Vermutlich hat Angular hier eine Art "Virtual-DOM" wo der Visibility-State gespeichert ist?
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="3">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="4" slide-left="3" slide-right="5" slide-up="1" slide-down="9">
                 <div>
                     <h1>Avoid filters</h1>
                     
@@ -998,8 +968,9 @@
                         zu cachen. Der Wert muss jedesmal neu ausgewertet werden.
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="4">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="5" slide-left="4" slide-right="6" slide-up="1" slide-down="9">
                 <div>
                     <h1>Track by ..</h1>
                     
@@ -1019,8 +990,9 @@
                         DOM Operationen sind generell teuer!
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="5">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="6" slide-left="5" slide-right="7" slide-up="1" slide-down="9">
                 <div>
                     <h1>ng-if vs. ng-show</h1>
                     
@@ -1036,8 +1008,9 @@
                         ist ng-if die bessere Wahl.
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="6">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="7" slide-left="6" slide-right="8" slide-up="1" slide-down="9">
                 <div>
                     <h1>ng-repeat</h1>
                     
@@ -1056,8 +1029,9 @@
                         dadurch müssen die inneren &lt;tr&gt; Elemente gar nicht erst beachtet werden. <br />
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="7">
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="8" slide-left="7" slide-right="9" slide-up="1" slide-down="9">
                 <div>
                     <h1>Native JS</h1>
                     
@@ -1072,8 +1046,9 @@
                         Die nativen JS Funktionen sind spezifischer und daher schneller.
                     </slide-text>
                 </div>
-            </div>
-            <div class="slide centered" ng-switch-when="8"> <!-- not sure about this one -->
+            </sama-slide>
+
+            <sama-slide class="centered" slide-id="9" slide-left="8" slide-up="1"> <!-- not sure about this one -->
                 <div>
                     <h1>$watch / $watchCollection</h1>
                     
@@ -1094,7 +1069,7 @@
                         $watch(collection) schlägt diesmal an, weil die "Top-Level" Referenz der Liste änderts
                     </slide-text>
                 </div>
-            </div>
-        </div>
+            </sama-slide>
+        </sama-presentation>
 	</body>
 </html>
