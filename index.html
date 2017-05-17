@@ -119,6 +119,25 @@
             .slide-text-knob:hover .slide-text-content {
                 display: block;
             }
+
+            .loader {
+                display: inline-block;
+                border: 4px solid #303030;
+                border-top: 4px solid white;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                animation: spin 2s linear infinite;
+            }
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
         </style>
 
 		<script>
@@ -570,8 +589,9 @@
                         '<div ng-if="$ctrl.done">{{ $ctrl.time2 / $ctrl.time1 * 100 | number:1 }}%</div>' +
                         '<separator-block height="40"></separator-block>' +
                         '<button ng-click="$ctrl.start()">Start</button>' +
+                        '<div class="loader" style="position: relative; top: 10px;" ng-if="$ctrl.running"></div>' +
                     '</div>',
-                controller: [function() {
+                controller: ['$timeout', function($timeout) {
                     var $ctrl = this;
                     
                     $ctrl.code1 = 'angular.forEach(items, fnc)';
@@ -592,38 +612,43 @@
                     };
                     
                     $ctrl.start = function() {
+                        $ctrl.running = true;
                         $ctrl.done = false;
                         
-                        var t0;
-                        var t1;
-                        
-                        init();
-                        t0 = performance.now();
-                        
-                        for (var i = 0; i < 100; ++i) {
-                            angular.forEach(items, function(item) {
-                                item.id++;
-                            });
-                        }
-                        
-                        t1 = performance.now();
-                        
-                        $ctrl.time1 = (t1 - t0).toFixed(0);
-                        
-                        init();
-                        t0 = performance.now();
-                        
-                        for (var i = 0; i < 100; ++i) {
-                            items.forEach(function(item) {
-                                item.id++;
-                            });
-                        }
-                        
-                        t1 = performance.now();
-                        
-                        $ctrl.time2 = (t1 - t0).toFixed(0);
-                        
-                        $ctrl.done = true;
+                        // allow for some timeout to show the spinner
+                        $timeout(function() {
+                            var t0;
+                            var t1;
+                            
+                            init();
+                            t0 = performance.now();
+                            
+                            for (var i = 0; i < 100; ++i) {
+                                angular.forEach(items, function(item) {
+                                    item.id++;
+                                });
+                            }
+                            
+                            t1 = performance.now();
+                            
+                            $ctrl.time1 = (t1 - t0).toFixed(0);
+                            
+                            init();
+                            t0 = performance.now();
+                            
+                            for (var i = 0; i < 100; ++i) {
+                                items.forEach(function(item) {
+                                    item.id++;
+                                });
+                            }
+                            
+                            t1 = performance.now();
+                            
+                            $ctrl.time2 = (t1 - t0).toFixed(0);
+                            
+                            $ctrl.done = true;
+                            $ctrl.running = false;
+                        }, 0);
                     };
                 }]
             });
